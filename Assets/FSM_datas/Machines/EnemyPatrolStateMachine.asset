@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b20cb8ef31258e4ca9a9855ca88d309, type: 3}
+  m_Name: EnemyPatrolStateMachine
+  m_EditorClassIdentifier: 
+  allStatesData:
+  - {fileID: 11400000, guid: 731aaff539b349c46b45053780408b0b, type: 2}
+  - {fileID: 11400000, guid: a5d977c1d4864fc4b8e5a04f17530ffc, type: 2}
+  - {fileID: 11400000, guid: f30337c12bdf9f545bbbe8ef6b5775ec, type: 2}
