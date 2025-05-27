@@ -161,11 +161,11 @@ namespace Extensions.FSM.Editor
             m_defaultStateCondition = (StateCondition)EditorGUILayout.ObjectField("Default Condition",
                 m_defaultStateCondition, typeof(StateCondition), false);
 
-            if (m_targetStateMachine == null)
+            if (m_targetStateMachine)
             {
                 EditorGUILayout.HelpBox("Please assign a State Machine to edit.", MessageType.Info);
             }
-            else if (m_defaultStateCondition == null)
+            else if (m_defaultStateCondition)
             {
                 EditorGUILayout.HelpBox("Please assign a Default State condition.", MessageType.Info);
             }
@@ -249,7 +249,7 @@ namespace Extensions.FSM.Editor
                 );
 
                 // Dibujar los nodos y conexiones
-                if (m_targetStateMachine != null && m_defaultStateCondition != null)
+                if (m_targetStateMachine  && m_defaultStateCondition)
                 {
                     if (m_currentStateMachineGui == null || m_targetStateMachine != m_currentStateMachineGui.TargetFsm)
                     {
@@ -510,7 +510,7 @@ namespace Extensions.FSM.Editor
                     // Confirmar cambios
                     if (!string.IsNullOrEmpty(p_state.StateName))
                     {
-                        if (p_state.AssociatedStateData != null && p_state.StateName != l_previousName)
+                        if (p_state.AssociatedStateData && p_state.StateName != l_previousName)
                         {
                             RenameStateAsset(p_state);
                         }
@@ -557,7 +557,7 @@ namespace Extensions.FSM.Editor
                 false);
 
             // Botón para crear StateData si no existe
-            if (p_state.AssociatedStateData == null)
+            if (p_state.AssociatedStateData)
             {
                 if (GUILayout.Button("Create StateData"))
                 {
@@ -574,7 +574,7 @@ namespace Extensions.FSM.Editor
             }
 
             // Mostrar comportamiento solo si hay StateData
-            if (p_state.AssociatedStateData != null)
+            if (p_state.AssociatedStateData)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("State Behavior", EditorStyles.boldLabel);
@@ -743,7 +743,7 @@ namespace Extensions.FSM.Editor
             EditorUtility.SetDirty(l_newStateData);
     
             // Si hay un estado asignado, guardar la referencia
-            if (p_state.State != null)
+            if (p_state.State)
             {
                 l_newStateData.MyState = p_state.State;
             }
@@ -936,7 +936,8 @@ namespace Extensions.FSM.Editor
         [ContextMenu("ResetData")]
         private void ResetData()
         {
-            if (m_targetStateMachine == null) return;
+            if (m_targetStateMachine) 
+                return;
 
             // Registrar undo
             Undo.RecordObject(this, "Reset FSM Data");
@@ -955,7 +956,7 @@ namespace Extensions.FSM.Editor
 
         private void SaveFsmChanges()
         {
-            if (m_targetStateMachine == null || m_currentStateMachineGui == null) 
+            if (m_targetStateMachine|| m_currentStateMachineGui == null) 
                 return;
 
             Undo.RecordObject(m_targetStateMachine, "Save FSM Changes");
@@ -965,7 +966,7 @@ namespace Extensions.FSM.Editor
     
             foreach (var l_guiState in m_currentStateMachineGui.AllGuiStates)
             {
-                if (l_guiState.AssociatedStateData != null)
+                if (l_guiState.AssociatedStateData)
                 {
                     // Actualizar el nombre del StateData si cambió
                     if (l_guiState.AssociatedStateData.name != l_guiState.StateName)
@@ -979,7 +980,7 @@ namespace Extensions.FSM.Editor
                         l_guiState.State,
                         l_guiState.StateCondition,
                         l_guiState.GuiConnections
-                            .Where(p_c => p_c.AssociatedStateData != null)
+                            .Where(p_c => p_c.AssociatedStateData)
                             .Select(p_c => p_c.AssociatedStateData)
                             .ToList()
                     );
@@ -992,6 +993,7 @@ namespace Extensions.FSM.Editor
             AssetDatabase.Refresh();
             EditorUtility.SetDirty(m_targetStateMachine);
     
+            
             Debug.Log("FSM changes saved successfully");
         }
 
@@ -1016,7 +1018,7 @@ namespace Extensions.FSM.Editor
 
         private void RenameStateAsset(GuiStateData p_stateData)
         {
-            if (p_stateData.AssociatedStateData == null || 
+            if (p_stateData.AssociatedStateData || 
                 string.IsNullOrEmpty(p_stateData.StateName) ||
                 p_stateData.StateName == p_stateData.AssociatedStateData.name)
             {
