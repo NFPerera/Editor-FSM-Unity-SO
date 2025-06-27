@@ -432,7 +432,7 @@ namespace Extensions.FSM.Editor
             for (int l_i = 0; l_i < m_currentStateMachineGui.AllStates.Count; l_i++)
             {
                 var l_stateData = m_currentStateMachineGui.AllStates[l_i];
-                Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 200, 190);
+                Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 200, 160);
                 Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 200, 30);
                 
                 var l_guiData = new GuiStateData(
@@ -490,10 +490,10 @@ namespace Extensions.FSM.Editor
 
             GUI.Box(l_scaledRect, "", l_boxStyle);
             GUILayout.BeginArea(l_scaledRect);
+            GUILayout.Space(10);
 
             // --- SECCIÓN SUPERIOR COMÚN ---
             EditorGUILayout.BeginHorizontal();
-            
             // Mostrar campo de texto o label según el modo
             if (p_state.IsExpanded)
             {
@@ -643,7 +643,7 @@ namespace Extensions.FSM.Editor
             return l_result;
         }
 
-        private readonly Vector3 m_conditionBoxRect = new Vector3(150, 100);
+        private readonly Vector3 m_conditionBoxRect = new Vector3(150, 60);
         private void DrawConnection(GuiStateData p_from,int p_indexConnection, GuiStateData p_to)
         {
             Handles.BeginGUI();
