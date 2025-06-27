@@ -655,13 +655,13 @@ namespace Extensions.FSM.Editor
 
             // Calcular puntos de control para la curva Bezier
             Vector3 l_startPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_from.ExpandedRect.xMax * m_zoomScale - m_scrollPosition.x,
-                (p_from.ExpandedRect.y + p_from.ExpandedRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_from.CurrentRect.xMax * m_zoomScale - m_scrollPosition.x,
+                (p_from.CurrentRect.y + p_from.CurrentRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
             );
 
             Vector3 l_endPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_to.ExpandedRect.xMin * m_zoomScale - m_scrollPosition.x,
-                (p_to.ExpandedRect.y + p_to.ExpandedRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_to.CurrentRect.xMin * m_zoomScale - m_scrollPosition.x,
+                (p_to.CurrentRect.y + p_to.CurrentRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
             );
 
             // Calcular puntos de control para la curva
