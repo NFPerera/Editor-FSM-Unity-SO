@@ -69,10 +69,10 @@ namespace Extensions.FSM.Editor
                     foreach (var l_state in m_currentStateMachineGui.AllGuiStates)
                     {
                         Rect l_scaledRect = new Rect(
-                            l_state.Rect.x * m_zoomScale - m_scrollPosition.x,
-                            l_state.Rect.y * m_zoomScale - m_scrollPosition.y,
-                            l_state.Rect.width * m_zoomScale,
-                            l_state.Rect.height * m_zoomScale
+                            l_state.ExpandedRect.x * m_zoomScale - m_scrollPosition.x,
+                            l_state.ExpandedRect.y * m_zoomScale - m_scrollPosition.y,
+                            l_state.ExpandedRect.width * m_zoomScale,
+                            l_state.ExpandedRect.height * m_zoomScale
                         );
 
                         if (l_scaledRect.Contains(Event.current.mousePosition))
@@ -86,8 +86,8 @@ namespace Extensions.FSM.Editor
                 m_connectionColor = l_isValidTarget ? Color.green : Color.red;
                 Handles.color = m_connectionColor;
 
-                Vector3 l_start = new Vector3(m_connectionStartNode.Rect.xMax * m_zoomScale,
-                    (m_connectionStartNode.Rect.y + m_connectionStartNode.Rect.height / 2) * m_zoomScale);
+                Vector3 l_start = new Vector3(m_connectionStartNode.ExpandedRect.xMax * m_zoomScale,
+                    (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height / 2) * m_zoomScale);
                 Vector3 l_end = Event.current.mousePosition + m_scrollPosition;
 
                 // Línea más gruesa con patrón
@@ -287,8 +287,8 @@ namespace Extensions.FSM.Editor
 
             // Calcular posición de inicio (centro derecho del nodo inicial)
             Vector3 l_startPos = new Vector3(
-                CONTROL_PANEL_WIDTH + m_connectionStartNode.Rect.xMax * m_zoomScale - m_scrollPosition.x,
-                (m_connectionStartNode.Rect.y + m_connectionStartNode.Rect.height * 0.5f) * m_zoomScale -
+                CONTROL_PANEL_WIDTH + m_connectionStartNode.ExpandedRect.xMax * m_zoomScale - m_scrollPosition.x,
+                (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height * 0.5f) * m_zoomScale -
                 m_scrollPosition.y
             );
 
@@ -297,10 +297,10 @@ namespace Extensions.FSM.Editor
             foreach (var l_state in m_currentStateMachineGui.AllGuiStates)
             {
                 Rect l_scaledRect = new Rect(
-                    CONTROL_PANEL_WIDTH + l_state.Rect.x * m_zoomScale - m_scrollPosition.x,
-                    l_state.Rect.y * m_zoomScale - m_scrollPosition.y,
-                    l_state.Rect.width * m_zoomScale,
-                    l_state.Rect.height * m_zoomScale
+                    CONTROL_PANEL_WIDTH + l_state.ExpandedRect.x * m_zoomScale - m_scrollPosition.x,
+                    l_state.ExpandedRect.y * m_zoomScale - m_scrollPosition.y,
+                    l_state.ExpandedRect.width * m_zoomScale,
+                    l_state.ExpandedRect.height * m_zoomScale
                 );
 
                 if (l_scaledRect.Contains(l_mousePos))
@@ -357,10 +357,10 @@ namespace Extensions.FSM.Editor
 
             foreach (var l_state in m_currentStateMachineGui.AllGuiStates)
             {
-                l_minX = Mathf.Min(l_minX, l_state.Rect.x);
-                l_minY = Mathf.Min(l_minY, l_state.Rect.y);
-                l_maxX = Mathf.Max(l_maxX, l_state.Rect.x + l_state.Rect.width);
-                l_maxY = Mathf.Max(l_maxY, l_state.Rect.y + l_state.Rect.height);
+                l_minX = Mathf.Min(l_minX, l_state.ExpandedRect.x);
+                l_minY = Mathf.Min(l_minY, l_state.ExpandedRect.y);
+                l_maxX = Mathf.Max(l_maxX, l_state.ExpandedRect.x + l_state.ExpandedRect.width);
+                l_maxY = Mathf.Max(l_maxY, l_state.ExpandedRect.y + l_state.ExpandedRect.height);
             }
 
             // Añadir márgenes (100px alrededor del contenido)
@@ -403,7 +403,7 @@ namespace Extensions.FSM.Editor
                 var l_from = l_connection.Item1;
                 var l_to = l_connection.Item2;
 
-                if (l_from.Rect.Overlaps(l_visibleArea) || l_to.Rect.Overlaps(l_visibleArea))
+                if (l_from.ExpandedRect.Overlaps(l_visibleArea) || l_to.ExpandedRect.Overlaps(l_visibleArea))
                 {
                     int l_index = l_from.GuiConnections.IndexOf(l_to);
                     if (l_index >= 0)
@@ -416,7 +416,7 @@ namespace Extensions.FSM.Editor
             // Dibujar nodos
             foreach (var l_guiState in l_statesToDraw)
             {
-                if (l_guiState.Rect.Overlaps(l_visibleArea))
+                if (l_guiState.ExpandedRect.Overlaps(l_visibleArea))
                 {
                     DrawNode(l_guiState);
                 }
@@ -432,12 +432,14 @@ namespace Extensions.FSM.Editor
             for (int l_i = 0; l_i < m_currentStateMachineGui.AllStates.Count; l_i++)
             {
                 var l_stateData = m_currentStateMachineGui.AllStates[l_i];
-                Rect l_nodeRect = new Rect(50 + 300 * l_i, 100, 200, 190);
-
+                Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 200, 190);
+                Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 100, 50);
+                
                 var l_guiData = new GuiStateData(
                     l_stateData,
                     l_stateData.name,
-                    l_nodeRect,
+                    l_nodeExpandedRect,
+                    l_nodeCollapsedRect,
                     l_stateData.MyState,
                     l_stateData.StateConditions,
                     l_stateData.ExitStates
@@ -471,11 +473,12 @@ namespace Extensions.FSM.Editor
 
         private void DrawNode(GuiStateData p_state)
         {
+            // Usamos CurrentRect que devuelve el rectángulo apropiado según IsExpanded
             Rect l_scaledRect = new Rect(
-                CONTROL_PANEL_WIDTH + p_state.Rect.x * m_zoomScale - m_scrollPosition.x,
-                p_state.Rect.y * m_zoomScale - m_scrollPosition.y,
-                p_state.Rect.width * m_zoomScale,
-                p_state.Rect.height * m_zoomScale
+                CONTROL_PANEL_WIDTH + p_state.CurrentRect.x * m_zoomScale - m_scrollPosition.x,
+                p_state.CurrentRect.y * m_zoomScale - m_scrollPosition.y,
+                p_state.CurrentRect.width * m_zoomScale,
+                p_state.CurrentRect.height * m_zoomScale
             );
 
             // Estilo del nodo basado en si está siendo editado
@@ -488,133 +491,133 @@ namespace Extensions.FSM.Editor
             GUI.Box(l_scaledRect, "", l_boxStyle);
             GUILayout.BeginArea(l_scaledRect);
 
-            // --- SECCIÓN DE NOMBRE DEL ESTADO ---
-            EditorGUILayout.LabelField("State Name:", EditorStyles.boldLabel);
-
-            string l_previousName = p_state.StateName;
-            GUI.SetNextControlName("StateNameField_" + p_state.UniqueId);
-
-            // Guardar el nombre antes de la edición
-            string l_nameBeforeEdit = p_state.StateName;
-
-            // Mostrar campo de texto
-            p_state.StateName = EditorGUILayout.TextField(p_state.StateName,
-                new GUIStyle(EditorStyles.textField)
-                    { normal = { textColor = l_isBeingEdited ? Color.cyan : Color.white } });
-
-            // Manejo de eventos de teclado
-            if (Event.current.isKey && GUI.GetNameOfFocusedControl() == "StateNameField_" + p_state.UniqueId)
+            // --- SECCIÓN SUPERIOR COMÚN ---
+            EditorGUILayout.BeginHorizontal();
+            
+            // Mostrar campo de texto o label según el modo
+            if (p_state.IsExpanded)
             {
-                if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
-                {
-                    // Confirmar cambios
-                    if (!string.IsNullOrEmpty(p_state.StateName))
-                    {
-                        if (p_state.AssociatedStateData && p_state.StateName != l_previousName)
-                        {
-                            RenameStateAsset(p_state);
-                        }
+                GUI.SetNextControlName("StateNameField_" + p_state.UniqueId);
+                p_state.StateName = EditorGUILayout.TextField(p_state.StateName,
+                    new GUIStyle(EditorStyles.textField)
+                        { normal = { textColor = l_isBeingEdited ? Color.cyan : Color.white } });
+            }
+            else
+            {
+                EditorGUILayout.LabelField(p_state.StateName, EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            }
 
+            // Botón para cambiar entre modos
+            if (GUILayout.Button(p_state.IsExpanded ? "↑" : "↓", GUILayout.Width(20)))
+            {
+                p_state.IsExpanded = !p_state.IsExpanded;
+                // Mantener la misma posición al cambiar de tamaño
+                p_state.SetPosition(p_state.CurrentRect.position);
+                Repaint();
+            }
+            
+            EditorGUILayout.EndHorizontal();
+
+            // Solo mostrar el resto si está expandido
+            if (p_state.IsExpanded)
+            {
+                // Manejo de eventos de teclado (solo en modo expandido)
+                if (Event.current.isKey && GUI.GetNameOfFocusedControl() == "StateNameField_" + p_state.UniqueId)
+                {
+                    string l_nameBeforeEdit = p_state.StateName;
+                    if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
+                    {
+                        if (!string.IsNullOrEmpty(p_state.StateName))
+                        {
+                            if (p_state.AssociatedStateData && p_state.StateName != l_nameBeforeEdit)
+                            {
+                                RenameStateAsset(p_state);
+                            }
+                            GUI.FocusControl(null);
+                            Event.current.Use();
+                        }
+                        else
+                        {
+                            p_state.StateName = l_nameBeforeEdit;
+                        }
+                    }
+                    else if (Event.current.keyCode == KeyCode.Escape)
+                    {
+                        p_state.StateName = l_nameBeforeEdit;
+                        m_currentlyEditingState = null;
                         GUI.FocusControl(null);
                         Event.current.Use();
                     }
-                    else
-                    {
-                        p_state.StateName = l_previousName;
-                    }
                 }
-                else if (Event.current.keyCode == KeyCode.Escape)
-                {
-                    // Cancelar cambios
-                    p_state.StateName = l_nameBeforeEdit;
-                    m_currentlyEditingState = null;
-                    GUI.FocusControl(null);
-                    Event.current.Use();
-                }
-            }
 
-            // Actualizar estado de edición
-            if (GUI.GetNameOfFocusedControl() == "StateNameField_" + p_state.UniqueId)
-            {
-                if (m_currentlyEditingState != p_state)
-                {
-                    m_currentlyEditingState = p_state;
-                }
-            }
-            else if (m_currentlyEditingState == p_state)
-            {
-                m_currentlyEditingState = null;
-            }
-
-            // --- SECCIÓN DE STATE DATA ---
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("State Data", EditorStyles.boldLabel);
-
-            var l_previousStateData = p_state.AssociatedStateData;
-            p_state.AssociatedStateData = (StateData)EditorGUILayout.ObjectField(
-                p_state.AssociatedStateData,
-                typeof(StateData),
-                false);
-
-            // Botón para crear StateData si no existe
-            if (p_state.AssociatedStateData)
-            {
-                if (GUILayout.Button("Create StateData"))
-                {
-                    CreateStateDataForNode(p_state);
-                }
-            }
-            else if (l_previousStateData != p_state.AssociatedStateData)
-            {
-                // Actualizar nombre cuando cambia el StateData
-                if (!l_isBeingEdited) // Solo si no estamos editando manualmente
-                {
-                    p_state.StateName = p_state.AssociatedStateData.name;
-                }
-            }
-
-            // Mostrar comportamiento solo si hay StateData
-            if (p_state.AssociatedStateData)
-            {
+                // --- SECCIÓN DE STATE DATA ---
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("State Behavior", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("State Data", EditorStyles.boldLabel);
 
-                var l_previousState = p_state.State;
-                p_state.State = (MyState)EditorGUILayout.ObjectField(
-                    p_state.State,
-                    typeof(MyState),
+                var l_previousStateData = p_state.AssociatedStateData;
+                p_state.AssociatedStateData = (StateData)EditorGUILayout.ObjectField(
+                    p_state.AssociatedStateData,
+                    typeof(StateData),
                     false);
 
-                // Actualizar referencia si cambió
-                if (l_previousState != p_state.State)
+                // Botón para crear StateData si no existe
+                if (p_state.AssociatedStateData == null)
                 {
-                    p_state.AssociatedStateData.MyState = p_state.State;
-                    EditorUtility.SetDirty(p_state.AssociatedStateData);
-                }
-            }
-
-            // --- BOTONES DE ACCIÓN ---
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Add Connection"))
-            {
-                m_connectionStartNode = p_state;
-                m_isCreatingConnection = true;
-            }
-
-            if (GUILayout.Button("Delete Node"))
-            {
-                if (EditorUtility.DisplayDialog("Delete State",
-                        $"Are you sure you want to delete '{p_state.StateName}'?",
-                        "Delete", "Cancel"))
-                {
-                    EditorApplication.delayCall += () =>
+                    if (GUILayout.Button("Create StateData"))
                     {
-                        CleanReferencesToState(p_state);
-                        m_currentStateMachineGui.DeleteState(p_state);
-                        UpdateContentRect();
-                        Repaint();
-                    };
-                    GUIUtility.ExitGUI();
+                        CreateStateDataForNode(p_state);
+                    }
+                }
+                else if (l_previousStateData != p_state.AssociatedStateData)
+                {
+                    if (!l_isBeingEdited)
+                    {
+                        p_state.StateName = p_state.AssociatedStateData.name;
+                    }
+                }
+
+                // Mostrar comportamiento solo si hay StateData
+                if (p_state.AssociatedStateData)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("State Behavior", EditorStyles.boldLabel);
+
+                    var l_previousState = p_state.State;
+                    p_state.State = (MyState)EditorGUILayout.ObjectField(
+                        p_state.State,
+                        typeof(MyState),
+                        false);
+
+                    if (l_previousState != p_state.State)
+                    {
+                        p_state.AssociatedStateData.MyState = p_state.State;
+                        EditorUtility.SetDirty(p_state.AssociatedStateData);
+                    }
+                }
+
+                // --- BOTONES DE ACCIÓN ---
+                EditorGUILayout.Space();
+                if (GUILayout.Button("Add Connection"))
+                {
+                    m_connectionStartNode = p_state;
+                    m_isCreatingConnection = true;
+                }
+
+                if (GUILayout.Button("Delete Node"))
+                {
+                    if (EditorUtility.DisplayDialog("Delete State",
+                            $"Are you sure you want to delete '{p_state.StateName}'?",
+                            "Delete", "Cancel"))
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            CleanReferencesToState(p_state);
+                            m_currentStateMachineGui.DeleteState(p_state);
+                            UpdateContentRect();
+                            Repaint();
+                        };
+                        GUIUtility.ExitGUI();
+                    }
                 }
             }
 
@@ -648,13 +651,13 @@ namespace Extensions.FSM.Editor
 
             // Calcular puntos de control para la curva Bezier
             Vector3 l_startPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_from.Rect.xMax * m_zoomScale - m_scrollPosition.x,
-                (p_from.Rect.y + p_from.Rect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_from.ExpandedRect.xMax * m_zoomScale - m_scrollPosition.x,
+                (p_from.ExpandedRect.y + p_from.ExpandedRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
             );
 
             Vector3 l_endPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_to.Rect.xMin * m_zoomScale - m_scrollPosition.x,
-                (p_to.Rect.y + p_to.Rect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_to.ExpandedRect.xMin * m_zoomScale - m_scrollPosition.x,
+                (p_to.ExpandedRect.y + p_to.ExpandedRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
             );
 
             // Calcular puntos de control para la curva
@@ -767,7 +770,7 @@ namespace Extensions.FSM.Editor
                     foreach (var l_guiState in m_currentStateMachineGui.AllGuiStates)
                     {
                         // Usar las coordenadas reales del nodo (sin escalar)
-                        if (l_guiState.Rect.Contains(l_mousePositionInWorkspace))
+                        if (l_guiState.ExpandedRect.Contains(l_mousePositionInWorkspace))
                         {
                             if (m_isCreatingConnection && m_connectionStartNode != null)
                             {
@@ -783,7 +786,7 @@ namespace Extensions.FSM.Editor
                             }
 
                             m_isDragging = true;
-                            m_dragStart = l_mousePositionInWorkspace - l_guiState.Rect.position;
+                            m_dragStart = l_mousePositionInWorkspace - l_guiState.ExpandedRect.position;
                             l_guiState.IsBeingDragged = true;
                             p_e.Use();
                             break;
@@ -806,7 +809,7 @@ namespace Extensions.FSM.Editor
                                     l_newPosition.y = Mathf.Round(l_newPosition.y / m_gridSize) * m_gridSize;
                                 }
 
-                                l_guiState.Rect.position = l_newPosition;
+                                l_guiState.SetPosition(l_newPosition);
                                 p_e.Use();
                                 Repaint();
                                 break;
@@ -858,17 +861,25 @@ namespace Extensions.FSM.Editor
         private void CreateNewState()
         {
             // Crear nuevo nodo sin StateData asociado
-            var l_newNodeRect = new Rect(
+            var l_newExpandedNodeRect = new Rect(
                 50 + 300 * m_currentStateMachineGui.AllGuiStates.Count,
                 100, 
                 200, 
                 190
             );
 
+            var l_newCollapsedNodeRect = new Rect(
+                50 + 300 * m_currentStateMachineGui.AllGuiStates.Count,
+                100, 
+                100, 
+                50
+                );
+
             var l_newGuiState = new GuiStateData(
                 null, // No StateData inicial
                 "New State", 
-                l_newNodeRect,
+                l_newExpandedNodeRect,
+                l_newCollapsedNodeRect,
                 null, // No MyState inicial
                 new List<StateCondition>(),
                 new List<StateData>()
@@ -888,7 +899,7 @@ namespace Extensions.FSM.Editor
             {
                 if (string.IsNullOrEmpty(l_state.StateName))
                 {
-                    Debug.LogWarning($"State has no name at position ({l_state.Rect.x}, {l_state.Rect.y})");
+                    Debug.LogWarning($"State has no name at position ({l_state.ExpandedRect.x}, {l_state.ExpandedRect.y})");
                 }
             }
 

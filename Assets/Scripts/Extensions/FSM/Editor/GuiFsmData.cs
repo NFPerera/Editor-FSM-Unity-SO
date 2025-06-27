@@ -20,13 +20,14 @@ namespace Assets.Scripts.Extensions.FSM.Editor
 
         public void AddGuiState(GuiStateData p_data) => AllGuiStates.Add(p_data);
 
-        public void AddState(StateData p_data, Rect p_rect)
+        public void AddState(StateData p_data, Rect p_expandedRect, Rect p_collapsedRect)
         {
             AllStates.Add(p_data);
 
             var l_guiData = new GuiStateData(p_data,
                 p_data.name,
-                p_rect,
+                p_expandedRect,
+                p_collapsedRect,
                 p_data.MyState,
                 p_data.StateConditions,
                 p_data.ExitStates);
