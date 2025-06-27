@@ -25,13 +25,7 @@ namespace Extensions.FSM.Editor
         private string m_lastEditedStateName;
         private GuiStateData m_currentlyEditingState;
 
-        #region ZoomControls
-
-        private float m_zoomScale = 1.0f;
-        private const float ZOOM_MIN = 0.5f; // Zoom mínimo
-        private const float ZOOM_MAX = 2.0f; // Zoom máximo
-
-        #endregion
+        
 
         #region Scroll
 
@@ -69,10 +63,10 @@ namespace Extensions.FSM.Editor
                     foreach (var l_state in m_currentStateMachineGui.AllGuiStates)
                     {
                         Rect l_scaledRect = new Rect(
-                            l_state.ExpandedRect.x * m_zoomScale - m_scrollPosition.x,
-                            l_state.ExpandedRect.y * m_zoomScale - m_scrollPosition.y,
-                            l_state.ExpandedRect.width * m_zoomScale,
-                            l_state.ExpandedRect.height * m_zoomScale
+                            l_state.ExpandedRect.x - m_scrollPosition.x,
+                            l_state.ExpandedRect.y - m_scrollPosition.y,
+                            l_state.ExpandedRect.width,
+                            l_state.ExpandedRect.height
                         );
 
                         if (l_scaledRect.Contains(Event.current.mousePosition))
@@ -86,8 +80,8 @@ namespace Extensions.FSM.Editor
                 m_connectionColor = l_isValidTarget ? Color.green : Color.red;
                 Handles.color = m_connectionColor;
 
-                Vector3 l_start = new Vector3(m_connectionStartNode.ExpandedRect.xMax * m_zoomScale,
-                    (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height / 2) * m_zoomScale);
+                Vector3 l_start = new Vector3(m_connectionStartNode.ExpandedRect.xMax,
+                    (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height / 2));
                 Vector3 l_end = Event.current.mousePosition + m_scrollPosition;
 
                 // Línea más gruesa con patrón
@@ -241,7 +235,7 @@ namespace Extensions.FSM.Editor
             try
             {
                 // Aplicar zoom y desplazamiento
-                GUIUtility.ScaleAroundPivot(Vector2.one * m_zoomScale, Vector2.zero);
+                GUIUtility.ScaleAroundPivot(Vector2.one, Vector2.zero);
                 GUI.matrix = Matrix4x4.TRS(
                     new Vector3(-l_adjustedScrollPosition.x, -l_adjustedScrollPosition.y, 0),
                     Quaternion.identity,
@@ -258,7 +252,7 @@ namespace Extensions.FSM.Editor
                     }
 
                     DrawNodeThree();
-                    HandleZoom(Event.current);
+                    
                     HandleNodeDragging(Event.current);
 
                     if (m_isCreatingConnection && m_connectionStartNode != null)
@@ -287,8 +281,8 @@ namespace Extensions.FSM.Editor
 
             // Calcular posición de inicio (centro derecho del nodo inicial)
             Vector3 l_startPos = new Vector3(
-                CONTROL_PANEL_WIDTH + m_connectionStartNode.ExpandedRect.xMax * m_zoomScale - m_scrollPosition.x,
-                (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height * 0.5f) * m_zoomScale -
+                CONTROL_PANEL_WIDTH + m_connectionStartNode.ExpandedRect.xMax - m_scrollPosition.x,
+                (m_connectionStartNode.ExpandedRect.y + m_connectionStartNode.ExpandedRect.height * 0.5f) -
                 m_scrollPosition.y
             );
 
@@ -297,10 +291,10 @@ namespace Extensions.FSM.Editor
             foreach (var l_state in m_currentStateMachineGui.AllGuiStates)
             {
                 Rect l_scaledRect = new Rect(
-                    CONTROL_PANEL_WIDTH + l_state.ExpandedRect.x * m_zoomScale - m_scrollPosition.x,
-                    l_state.ExpandedRect.y * m_zoomScale - m_scrollPosition.y,
-                    l_state.ExpandedRect.width * m_zoomScale,
-                    l_state.ExpandedRect.height * m_zoomScale
+                    CONTROL_PANEL_WIDTH + l_state.ExpandedRect.x - m_scrollPosition.x,
+                    l_state.ExpandedRect.y - m_scrollPosition.y,
+                    l_state.ExpandedRect.width,
+                    l_state.ExpandedRect.height
                 );
 
                 if (l_scaledRect.Contains(l_mousePos))
@@ -391,10 +385,10 @@ namespace Extensions.FSM.Editor
 
             // Calcular área visible
             Rect l_visibleArea = new Rect(
-                m_scrollPosition.x / m_zoomScale,
-                m_scrollPosition.y / m_zoomScale,
-                position.width / m_zoomScale,
-                position.height / m_zoomScale
+                m_scrollPosition.x,
+                m_scrollPosition.y,
+                position.width,
+                position.height
             );
 
             // Dibujar conexiones
@@ -432,8 +426,8 @@ namespace Extensions.FSM.Editor
             for (int l_i = 0; l_i < m_currentStateMachineGui.AllStates.Count; l_i++)
             {
                 var l_stateData = m_currentStateMachineGui.AllStates[l_i];
-                Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 200, 160);
-                Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 200, 30);
+                Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 210, 180);
+                Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 210, 40);
                 
                 var l_guiData = new GuiStateData(
                     l_stateData,
@@ -475,10 +469,10 @@ namespace Extensions.FSM.Editor
         {
             // Usamos CurrentRect que devuelve el rectángulo apropiado según IsExpanded
             Rect l_scaledRect = new Rect(
-                CONTROL_PANEL_WIDTH + p_state.CurrentRect.x * m_zoomScale - m_scrollPosition.x,
-                p_state.CurrentRect.y * m_zoomScale - m_scrollPosition.y,
-                p_state.CurrentRect.width * m_zoomScale,
-                p_state.CurrentRect.height * m_zoomScale
+                CONTROL_PANEL_WIDTH + p_state.CurrentRect.x - m_scrollPosition.x,
+                p_state.CurrentRect.y - m_scrollPosition.y,
+                p_state.CurrentRect.width,
+                p_state.CurrentRect.height
             );
 
             // Estilo del nodo basado en si está siendo editado
@@ -504,15 +498,18 @@ namespace Extensions.FSM.Editor
             }
             else
             {
-                EditorGUILayout.LabelField(p_state.StateName, new GUIStyle(EditorStyles.boldLabel) 
-                { 
+                EditorGUILayout.LabelField(p_state.StateName, new GUIStyle(EditorStyles.boldLabel)
+                {
                     fontSize = 18, // Puedes ajustar este valor según lo grande que lo quieras
-                    alignment = TextAnchor.MiddleCenter, 
-                }, GUILayout.ExpandWidth(true));
-            }
+                    alignment = TextAnchor.MiddleCenter
+                });
 
+            }
+            
+            if (!p_state.IsExpanded)
+                GUILayout.Space(-50);
             // Botón para cambiar entre modos
-            if (GUILayout.Button(p_state.IsExpanded ? "↑" : "↓", GUILayout.Width(20)))
+            if (GUILayout.Button(p_state.IsExpanded ? "↑" : "↓", GUILayout.Width(20), GUILayout.Height(20)))
             {
                 p_state.IsExpanded = !p_state.IsExpanded;
                 // Mantener la misma posición al cambiar de tamaño
@@ -655,13 +652,13 @@ namespace Extensions.FSM.Editor
 
             // Calcular puntos de control para la curva Bezier
             Vector3 l_startPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_from.CurrentRect.xMax * m_zoomScale - m_scrollPosition.x,
-                (p_from.CurrentRect.y + p_from.CurrentRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_from.CurrentRect.xMax - m_scrollPosition.x,
+                (p_from.CurrentRect.y + p_from.CurrentRect.height * 0.5f) - m_scrollPosition.y
             );
 
             Vector3 l_endPos = new Vector3(
-                CONTROL_PANEL_WIDTH + p_to.CurrentRect.xMin * m_zoomScale - m_scrollPosition.x,
-                (p_to.CurrentRect.y + p_to.CurrentRect.height * 0.5f) * m_zoomScale - m_scrollPosition.y
+                CONTROL_PANEL_WIDTH + p_to.CurrentRect.xMin- m_scrollPosition.x,
+                (p_to.CurrentRect.y + p_to.CurrentRect.height * 0.5f) - m_scrollPosition.y
             );
 
             // Calcular puntos de control para la curva
@@ -681,10 +678,10 @@ namespace Extensions.FSM.Editor
             Vector3 l_midPoint = BezierPoint(0.5f, l_startPos, l_endPos, l_startTangent, l_endTangent);
 
             Rect l_conditionRect = new Rect(
-                l_midPoint.x - (m_conditionBoxRect.x * 0.5f * m_zoomScale),
-                l_midPoint.y - (m_conditionBoxRect.y * 0.5f * m_zoomScale),
-                m_conditionBoxRect.x * m_zoomScale,
-                m_conditionBoxRect.y * m_zoomScale
+                l_midPoint.x - (m_conditionBoxRect.x * 0.5f),
+                l_midPoint.y - (m_conditionBoxRect.y * 0.5f),
+                m_conditionBoxRect.x,
+                m_conditionBoxRect.y
             );
 
             // Resto del código para dibujar la caja de condición...
@@ -722,7 +719,7 @@ namespace Extensions.FSM.Editor
                                BezierPoint(0.9f, l_startPos, l_endPos, l_startTangent, l_endTangent));
             l_arrowDir.Normalize();
 
-            float l_arrowSize = 15f * m_zoomScale;
+            float l_arrowSize = 15f;
             Vector3 l_arrowTip = l_endPos;
             Vector3 l_arrowLeft = l_arrowTip + Quaternion.Euler(0, 0, 30) * -l_arrowDir * l_arrowSize;
             Vector3 l_arrowRight = l_arrowTip + Quaternion.Euler(0, 0, -30) * -l_arrowDir * l_arrowSize;
@@ -766,7 +763,7 @@ namespace Extensions.FSM.Editor
         {
 
             // Convertir la posición del mouse a coordenadas del workspace considerando zoom y scroll
-            Vector2 l_mousePositionInWorkspace = (p_e.mousePosition - new Vector2(CONTROL_PANEL_WIDTH, 0) + m_scrollPosition) / m_zoomScale;
+            Vector2 l_mousePositionInWorkspace = (p_e.mousePosition - new Vector2(CONTROL_PANEL_WIDTH, 0) + m_scrollPosition);
 
             switch (p_e.type)
             {
@@ -840,23 +837,6 @@ namespace Extensions.FSM.Editor
                         p_e.Use();
                     }
                     break;
-            }
-        }
-
-        private void HandleZoom(Event p_e)
-        {
-            if (p_e.type == EventType.ScrollWheel)
-            {
-                float l_zoomDelta = -p_e.delta.y * 0.05f;
-                Vector2 l_mousePosition = p_e.mousePosition + m_scrollPosition;
-
-                float l_prevZoom = m_zoomScale;
-                m_zoomScale = Mathf.Clamp(m_zoomScale + l_zoomDelta, ZOOM_MIN, ZOOM_MAX);
-
-                m_scrollPosition += (l_mousePosition - m_scrollPosition) * (1 - (m_zoomScale / l_prevZoom));
-
-                p_e.Use();
-                Repaint();
             }
         }
 
