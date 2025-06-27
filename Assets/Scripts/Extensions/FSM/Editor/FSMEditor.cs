@@ -433,7 +433,7 @@ namespace Extensions.FSM.Editor
             {
                 var l_stateData = m_currentStateMachineGui.AllStates[l_i];
                 Rect l_nodeExpandedRect = new Rect(50 + 300 * l_i, 100, 200, 190);
-                Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 100, 50);
+                Rect l_nodeCollapsedRect = new Rect(50 + 300 * l_i, 100, 200, 30);
                 
                 var l_guiData = new GuiStateData(
                     l_stateData,
@@ -504,7 +504,11 @@ namespace Extensions.FSM.Editor
             }
             else
             {
-                EditorGUILayout.LabelField(p_state.StateName, EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+                EditorGUILayout.LabelField(p_state.StateName, new GUIStyle(EditorStyles.boldLabel) 
+                { 
+                    fontSize = 18, // Puedes ajustar este valor según lo grande que lo quieras
+                    alignment = TextAnchor.MiddleCenter, 
+                }, GUILayout.ExpandWidth(true));
             }
 
             // Botón para cambiar entre modos
